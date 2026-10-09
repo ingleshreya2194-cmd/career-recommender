@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PathFinder - Career & Course Recommender</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F3F7FB;--card:#fff;--ink:#17233A;--mute:#5B6880;--line:#DCE5F0;--red:#C5192D;--teal:#0E7C86;--soft:#E7F3F4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.55 "Source Sans 3",system-ui,sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif;margin:0;line-height:1.15}
+header{max-width:1120px;margin:0 auto;padding:44px 24px 12px}
+header h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;max-width:16ch}
+header p{max-width:60ch;color:var(--mute);margin:14px 0 0}
+.sdg{display:inline-flex;gap:8px;margin-top:18px}
+.sdg span{color:#fff;font:600 13px "Source Sans 3";padding:5px 10px;border-radius:6px}
+main{max-width:1120px;margin:0 auto;padding:20px 24px 60px;display:grid;grid-template-columns:380px 1fr;gap:28px;align-items:start}
+@media(max-width:860px){main{grid-template-columns:1fr}}
+form{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;position:sticky;top:16px}
+@media(max-width:860px){form{position:static}}
+form h2{font-size:1.2rem;margin-bottom:6px}
+fieldset{border:0;padding:0;margin:20px 0 0}
+legend{font-weight:600;margin-bottom:8px;padding:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips input{position:absolute;opacity:0}
+.chips label{border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:15px;transition:.15s}
+.chips input:checked+label{background:var(--teal);border-color:var(--teal);color:#fff}
+.chips input:focus-visible+label{outline:3px solid #9bd3d8}
+.row{display:grid;grid-template-columns:1fr 34px;align-items:center;gap:4px 10px;margin-bottom:10px;font-size:15px}
+.row span{grid-column:1/2}.row output{grid-row:1;grid-column:2;text-align:right;font-weight:600;color:var(--teal)}
+.row input{grid-column:1/3;width:100%;accent-color:var(--teal)}
+input[type=number]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
+button{margin-top:22px;width:100%;background:var(--red);color:#fff;border:0;border-radius:12px;padding:14px;font:600 17px "Source Sans 3";cursor:pointer}
+button:hover{background:#a81425}button:focus-visible{outline:3px solid #f1a5ae}
+#results{display:grid;gap:18px}
+.empty{background:var(--soft);border-radius:16px;padding:32px;color:#2c5c61}
+.empty h2{font-size:1.4rem;margin-bottom:8px}
+.res{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;animation:in .4s ease both}
+.res:first-child{border-color:var(--teal);box-shadow:0 0 0 3px var(--soft)}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.res{animation:none}.bar i{transition:none}}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.top h3{font-size:1.5rem}.pct{font:700 1.6rem "Bricolage Grotesque";color:var(--teal)}
+.bar{height:10px;background:var(--soft);border-radius:99px;margin:10px 0 14px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--teal);border-radius:99px;transition:width .9s ease}
+.res p{margin:0 0 12px;color:var(--mute)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:620px){.cols{grid-template-columns:1fr}}
+.res h4{margin:10px 0 6px;font-size:1rem}
+.res ul{margin:0;padding-left:20px}.res li{margin-bottom:4px}
+.res a{color:var(--teal);font-weight:600}
+.note{font-size:15px;margin-top:10px}.note b{color:var(--ink)}
+footer{max-width:1120px;margin:0 auto;padding:0 24px 40px;color:var(--mute);font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Find a career that fits you, then learn it free</h1>
+  <p>Tell us what you enjoy, what you are good at and your marks. A machine learning model suggests three careers and free online courses to start today.</p>
+  <div class="sdg"><span style="background:#C5192D">SDG 4 Quality Education</span><span style="background:#A21942">SDG 8 Decent Work</span></div>
+</header>
+<main>
+  <form id="f">
+    <h2>About you</h2>
+    <fieldset><legend>What interests you?</legend>
+      <div class="chips">
+      {% for i in interests %}<span><input type="checkbox" name="int" id="i{{loop.index}}" value="{{i}}"><label for="i{{loop.index}}">{{i}}</label></span>{% endfor %}
+      </div>
+    </fieldset>
+    <fieldset><legend>Rate your skills (1 to 10)</legend>
+      {% for s in skills %}<label class="row"><span>{{s}}</span><output>5</output><input type="range" min="1" max="10" value="5" name="{{s}}" oninput="this.previousElementSibling.value=this.value"></label>{% endfor %}
+    </fieldset>
+    <fieldset><legend><label for="marks">Your marks (%)</label></legend>
+      <input type="number" id="marks" min="0" max="100" value="70" required>
+    </fieldset>
+    <button type="submit">Show my careers</button>
+  </form>
+  <section id="results" aria-live="polite">
+    <div class="empty"><h2>Your matches will show up here</h2><p>Pick a few interests, move the skill sliders and press <b>Show my careers</b>.</p></div>
+  </section>
+</main>
+<footer>Suggestions come from a model trained on typical career profiles. Use them as a starting point, not a final answer.</footer>
+<script>
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+document.getElementById('f').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const skills={};document.querySelectorAll('input[type=range]').forEach(r=>skills[r.name]=r.value);
+  const interests=[...document.querySelectorAll('input[name=int]:checked')].map(x=>x.value);
+  const box=document.getElementById('results');
+  box.innerHTML='<div class="empty"><h2>Working it out...</h2></div>';
+  try{
+    const r=await fetch('/api/recommend',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({skills,interests,marks:document.getElementById('marks').value})});
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error||'Something went wrong');
+    box.innerHTML=d.results.map(c=>`<article class="res">
+      <div class="top"><h3>${esc(c.name)}</h3><span class="pct">${c.match}%</span></div>
+      <div class="bar"><i data-w="${c.match}"></i></div>
+      <p>${esc(c.about)}</p>
+      <div class="cols">
+        <div><h4>Free courses</h4><ul>${c.courses.map(x=>`<li><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a></li>`).join('')}</ul></div>
+        <div><h4>Your roadmap</h4><ul>${c.path.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+      </div>
+      ${c.strengths.length?`<p class="note"><b>Already strong in:</b> ${c.strengths.map(esc).join(', ')}</p>`:''}
+      ${c.improve.length?`<p class="note" style="margin-top:2px"><b>Work on:</b> ${c.improve.map(esc).join(', ')}</p>`:''}
+    </article>`).join('');
+    requestAnimationFrame(()=>document.querySelectorAll('.bar i').forEach(b=>b.style.width=b.dataset.w+'%'));
+  }catch(err){box.innerHTML=`<div class="empty"><h2>Could not get results</h2><p>${esc(err.message)}. Check your inputs and try again.</p></div>`}
+});
+</script>
+</body>
+</html>
